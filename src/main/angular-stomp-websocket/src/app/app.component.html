@@ -1,0 +1,53 @@
+<div [ngSwitch]="templateFlg">
+
+  <div *ngSwitchCase="true" id="username-page">
+    <div class="username-page-container">
+      <h1 class="title">Type your username</h1>
+      <form id="usernameForm" name="usernameForm">
+        <div class="form-group">
+          <input #username id="name" placeholder="Username" autocomplete="off" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <button type="button" class="accent username-submit" (click)="login(username)">Start Chatting</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div *ngSwitchCase="false" id="chat-page">
+    <div class="chat-container">
+      <div class="chat-header">
+        <h2>Spring Angular WebSocket Chat</h2>
+      </div>
+      <div class="connecting">
+        {{connecting}}
+      </div>
+      <ul id="messageArea" #msgArea>
+        <li *ngFor="let msg of messages" [ngClass]="{
+                'event-message':msg.type !== 'CHAT',
+                'chat-message':msg.type === 'CHAT'
+              }">
+          <span *ngIf="msg.type === 'CHAT'">
+            <i [style.background-color]="getAvatarColor(msg.sender)">{{ msg.sender[0] }}</i>
+            <span>{{ msg.sender }}</span>
+            <p>{{ msg.content }}</p>
+          </span>
+          <span *ngIf="msg.type !== 'CHAT'">
+            {{ msg.content }}
+          </span>
+        </li>
+      </ul>
+      <form id="messageForm" name="messageForm" nameForm="messageForm">
+        <div class="form-group">
+          <div class="input-group clearfix">
+            <input #message id="message" placeholder="Type a message..."
+                   class="form-control" name="msgValue" [(ngModel)]="msgValue" />
+            <button class="primary" (click)="sendMessage(message)">Send</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<router-outlet></router-outlet>

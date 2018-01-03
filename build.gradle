@@ -1,0 +1,78 @@
+buildscript {
+    ext {
+        springBootVersion = '2.0.0.M2'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven { url "https://repo.spring.io/snapshot" }
+        maven { url "https://repo.spring.io/milestone" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+group 'spring-angular-websocket-chat'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url "https://repo.spring.io/snapshot" }
+    maven { url "https://repo.spring.io/milestone" }
+}
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-web')
+    compile('org.springframework.boot:spring-boot-starter-webflux')
+    compile('org.springframework.boot:spring-boot-starter-websocket')
+    compile("org.webjars:webjars-locator")
+    compile("org.webjars:jquery:3.2.1")
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+task npmInstall(type: Exec) {
+	description 'Download node dependencies'
+	group 'Build'
+
+	inputs.file(new File(rootDir, ngSrcDir + '/package.json'))
+	outputs.dir(new File(rootDir, ngSrcDir + '/node_modules'))
+	workingDir file(new File(rootDir, ngSrcDir))
+	commandLine npm, 'install'
+}
+
+// When launching / building Spring Boot app in Eclipse, the default output path is the bin folder (vs build for a gradle build)
+// with that in mind you probably want to invoke these tasks with an amended '-PngBuildDir=bin/static' to ensure the app has the
+// built static web artifacts on the classpath 
+
+task ngBuild(type: Exec) {
+	description 'Build the Angular 4 App'
+	group 'Build'
+
+	dependsOn npmInstall
+
+	inputs.files(fileTree(new File(rootDir, ngSrcDir)))
+	outputs.dir(file(new File(rootDir, ngBuildDir)))
+	workingDir file(new File(rootDir, ngSrcDir))
+	commandLine ng, 'build', '-op', file(new File(rootDir, ngBuildDir))
+}
+
+task ngWatch(type: Exec) {
+	description 'Continuously build the Angular 4 App'
+	group 'Build'
+
+	dependsOn npmInstall
+	
+	workingDir file(new File(rootDir, ngSrcDir))
+	commandLine ng, 'build', '-w', '-op', file(new File(rootDir, ngBuildDir))
+}
+
+classes.dependsOn ngBuild
